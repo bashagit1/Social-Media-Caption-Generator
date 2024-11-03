@@ -1,13 +1,9 @@
 import streamlit as st
-import openai
 import os
-from SimplerLLM.language.llm import LLM, LLMProvider
+from openai import OpenAI
 
 # Set up OpenAI API Key
-openai.api_key = os.getenv("OPENAI_API_KEY")
-
-# Initialize LLM instance
-llm_instance = LLM.create(provider=LLMProvider.OPENAI, model_name="gpt-3.5-turbo")
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 # Title and Description
 st.set_page_config(page_title="Social Media Caption Generator", page_icon="✍️")
@@ -31,13 +27,18 @@ if st.button("🚀 Generate Caption", key="generate"):
         prompt = f"Generate a {tone.lower()} caption for a {platform.lower()} post about {user_input}."
         
         # Generate response from LLM
-        response = llm_instance.generate_response(prompt=prompt)
+        response = client.chat.completions.create(
+            messages=[{"role": "user", "content": prompt}],
+            model="gpt-3.5-turbo"
+        )
+        
+        caption = response.choices[0].message.content
         
         st.subheader("📝 Generated Caption")
-        st.write(response)
+        st.write(caption)
         
         # Add Copy/Download Button for convenience
-        st.download_button(label="⬇️ Download Caption", data=response, file_name="caption.txt")
+        st.download_button(label="⬇️ Download Caption", data=caption, file_name="caption.txt")
     else:
         st.warning("⚠️ Please enter a theme or topic to generate a caption.")
 
